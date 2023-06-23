@@ -128,7 +128,7 @@ func autoloadSchema() error {
 	return nil
 }
 
-func main() {
+func main1() {
 	if err := autoloadSchema(); err != nil {
 		// ignore
 	}
