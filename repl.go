@@ -9,16 +9,11 @@ import (
 	"github.com/chzyer/readline"
 )
 
-func main() {
-	repl()
+type envCompleter struct {
+	env env
 }
 
-type valueCompleter struct {
-	env   env
-	value value
-}
-
-func (vc *valueCompleter) Do(line []rune, pos int) ([][]rune, int) {
+func (vc *envCompleter) Do(line []rune, pos int) ([][]rune, int) {
 	if pos != len(line) {
 		return nil, len(line)
 	}
@@ -32,7 +27,7 @@ func (vc *valueCompleter) Do(line []rune, pos int) ([][]rune, int) {
 		beforeLast = l[0 : i+1]
 		lastToken = l[i+1:]
 	}
-	v := readEval(vc.env, vc.value, beforeLast, true /*readonly*/)
+	v := readEval(vc.env, strings.TrimSpace(beforeLast), true /*readonly*/)
 	var out [][]rune
 	for _, x := range completeInEnv(vc.env, v, lastToken) {
 		if strings.HasPrefix(x, lastToken) {
@@ -49,19 +44,18 @@ func completeInEnv(env env, v value, query string) []string {
 			completions = append(completions, k)
 		}
 	}
-	return completions
+	return fuzzyMatch(query, completions, 25)
 }
 
 func repl() (finalError error) {
-	env := make(env)
-	v := newStdLib()
+	env := newStdEnv()
 	cfg := &readline.Config{
 		Prompt:            "\033[31m»\033[0m ",
 		HistoryFile:       "/tmp/pus-readline.tmp",
 		InterruptPrompt:   "^C",
 		EOFPrompt:         "exit",
 		HistorySearchFold: true,
-		AutoComplete:      &valueCompleter{value: v, env: env},
+		AutoComplete:      &envCompleter{env: env},
 		FuncFilterInputRune: func(r rune) (rune, bool) {
 			switch r {
 			// block CtrlZ feature
@@ -95,7 +89,7 @@ func repl() (finalError error) {
 		} else if err == io.EOF {
 			break
 		}
-		fmt.Println(readEval(env, v, line, false /*readonly*/).Show())
+		fmt.Println(readEval(env, line, false /*readonly*/).Show())
 	}
 
 	return nil

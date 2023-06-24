@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -10,6 +11,22 @@ type value interface {
 	Message(arg value) value
 	Complete(query string) []string
 	Show() string
+}
+
+type deferredValue struct {
+	get func() value
+}
+
+func (dv deferredValue) Message(arg value) value {
+	return dv.get().Message(arg)
+}
+
+func (dv deferredValue) Complete(query string) []string {
+	return dv.get().Complete(query)
+}
+
+func (dv deferredValue) Show() string {
+	return dv.get().Show()
 }
 
 type strValue string
@@ -26,11 +43,45 @@ func (sv strValue) Show() string {
 	return string(sv)
 }
 
-func newStdLib() value {
-	return &stdlib{}
+func errValue(format string, arg ...any) value {
+	return strValue(fmt.Sprintf(format, arg...))
 }
 
-func readEval(env env, v value, rawExpr string, readonly bool) value {
+type mapValue map[string]value
+
+func (mv mapValue) Message(arg value) value {
+	sv, ok := arg.(strValue)
+	if !ok {
+		return errValue("Error: map only responds to str messages, given %s", arg.Show())
+	}
+	rv, ok := mv[string(sv)]
+	if !ok {
+		return errValue("Error: unknown key %s", string(sv))
+	}
+	return rv
+}
+
+func (mv mapValue) Show() string {
+	return fmt.Sprintf("map[n=%d]", len(mv))
+}
+
+func (mv mapValue) Complete(query string) (matches []string) {
+	for k := range mv {
+		if !strings.HasPrefix(k, query) {
+			continue
+		}
+		matches = append(matches, k)
+	}
+	return
+}
+
+func newStdEnv() env {
+	v := make(env)
+	v["schema"] = deferredValue{schemaPrim}
+	return v
+}
+
+func readEval(env env, rawExpr string, readonly bool) value {
 	tokens := strings.Split(rawExpr, " ")
 
 	var assignTo string
@@ -39,7 +90,12 @@ func readEval(env env, v value, rawExpr string, readonly bool) value {
 		tokens = tokens[2:]
 	}
 
-	for _, m := range tokens {
+	v, ok := env[tokens[0]]
+	if !ok {
+		return errValue("Undefined: %s", tokens[0])
+	}
+
+	for _, m := range tokens[1:] {
 		if vv, ok := env[m]; ok {
 			v = v.Message(vv)
 		} else {
@@ -51,24 +107,4 @@ func readEval(env env, v value, rawExpr string, readonly bool) value {
 		env[assignTo] = v
 	}
 	return v
-}
-
-type stdlib struct {
-	path []value
-}
-
-func (self *stdlib) Message(arg value) value {
-	return &stdlib{path: append(self.path, arg)}
-}
-
-func (self *stdlib) Complete(prefix string) []string {
-	return []string{prefix + "1", prefix + "2", prefix + "3"}
-}
-
-func (self *stdlib) Show() string {
-	var parts []string
-	for _, p := range self.path {
-		parts = append(parts, p.Show())
-	}
-	return strings.Join(parts, ".")
 }
