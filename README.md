@@ -7,13 +7,13 @@ Loads and explores [Pulumi Package Schema](https://www.pulumi.com/docs/using-pul
 Execute `pus` in a context of a checked out repo such as `pulumi/pulumi-cloudflare`. Try auto-complete on functions:
 
     » schema fn cloudflare:index/get[TAB]
-    cloudflare:index/getZone:getZone                                            cloudflare:index/getList:getList
-    cloudflare:index/getLists:getLists                                          cloudflare:index/getZones:getZones
-    cloudflare:index/getRecord:getRecord                                        cloudflare:index/getDevices:getDevices
-    cloudflare:index/getRulesets:getRulesets                                    cloudflare:index/getAccounts:getAccounts
-    cloudflare:index/getIpRanges:getIpRanges                                    cloudflare:index/getZoneDnssec:getZoneDnssec
-    cloudflare:index/getAccountRoles:getAccountRoles                            cloudflare:index/getLoadBalancerPools:getLoadBalancerPools
-    cloudflare:index/getAccessIdentityProvider:getAccessIdentityProvider        cloudflare:index/getOriginCaRootCertificate:getOriginCaRootCertificate
+    cloudflare:index/getZone:getZone
+    cloudflare:index/getLists:getLists
+    cloudflare:index/getRecord:getRecord
+    cloudflare:index/getRulesets:getRulesets
+    cloudflare:index/getIpRanges:getIpRanges
+    cloudflare:index/getAccountRoles:getAccountRoles
+    cloudflare:index/getAccessIdentityProvider:getAccessIdentityProvider
     cloudflare:index/getApiTokenPermissionGroups:getApiTokenPermissionGroups
 
 You can save the function of interest to a variable:
