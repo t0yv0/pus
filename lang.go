@@ -92,7 +92,7 @@ func readEval(env env, rawExpr string, readonly bool) value {
 
 	v, ok := env[tokens[0]]
 	if !ok {
-		return errValue("Undefined: %s", tokens[0])
+		v = strValue(tokens[0])
 	}
 
 	for _, m := range tokens[1:] {
