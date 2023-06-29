@@ -53,7 +53,7 @@ func schemaValue(spec *schema.PackageSpec) value {
 	for rname := range spec.Resources {
 		rname := rname
 		resources[rname] = deferredValue{func() value {
-			return strValue(pretty(spec.Resources[rname]))
+			return resValue(spec.Resources[rname])
 		}}
 	}
 
@@ -77,6 +77,14 @@ func schemaValue(spec *schema.PackageSpec) value {
 	}
 
 	return v
+}
+
+func resValue(res schema.ResourceSpec) value {
+	r := make(mapValue)
+	r["desc"] = strValue(res.Description)
+	res.Description = ""
+	r["shape"] = strValue(pretty(res))
+	return r
 }
 
 func schemaPrim() value {
