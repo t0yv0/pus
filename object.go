@@ -47,6 +47,10 @@ type objectValue struct {
 	shownAs string
 }
 
+func (ov *objectValue) Run() value.Value {
+	return ov
+}
+
 func (ov *objectValue) Show() string {
 	if ov.shownAs != "" {
 		return ov.shownAs
