@@ -3,9 +3,8 @@ module github.com/t0yv0/pus
 go 1.20
 
 require (
-	github.com/chzyer/readline v1.5.1
-	github.com/lithammer/fuzzysearch v1.1.8
 	github.com/pulumi/pulumi/pkg/v3 v3.70.0
+	github.com/t0yv0/complang v0.0.0-20230825012319-42a6af30ae5d
 )
 
 require (
@@ -17,6 +16,7 @@ require (
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/cheggaaa/pb v1.0.29 // indirect
+	github.com/chzyer/readline v1.5.1 // indirect
 	github.com/cloudflare/circl v1.3.3 // indirect
 	github.com/djherbis/times v1.5.0 // indirect
 	github.com/edsrzf/mmap-go v1.1.0 // indirect

@@ -9,9 +9,14 @@ import (
 	"strings"
 
 	"github.com/pulumi/pulumi/pkg/v3/codegen/schema"
+	"github.com/t0yv0/complang/value"
 )
 
 func detectSchemaFile() (string, error) {
+	if _, err := os.ReadFile("schema.json"); err == nil {
+		return "schema.json", nil
+	}
+
 	cmd := exec.Command("git", "ls-files", "**schema.json")
 	out := &bytes.Buffer{}
 	cmd.Stdout = out
@@ -44,58 +49,82 @@ func autoloadSchema() (*schema.PackageSpec, error) {
 	return &packageSpec, nil
 }
 
-func schemaValue(spec *schema.PackageSpec) value {
-	v := make(mapValue)
-
-	resources := make(mapValue)
-	v["rs"] = resources
-
-	for rname := range spec.Resources {
-		rname := rname
-		resources[rname] = deferredValue{func() value {
-			return resValue(spec.Resources[rname])
-		}}
+func strValue(s string) value.Value {
+	return &value.StringValue{
+		Value: s,
 	}
-
-	fns := make(mapValue)
-	v["fn"] = fns
-
-	for fname := range spec.Functions {
-		fname := fname
-		fns[fname] = deferredValue{func() value {
-			return strValue(pretty(spec.Functions[fname]))
-		}}
-	}
-
-	tys := make(mapValue)
-	v["ty"] = tys
-	for tname := range spec.Types {
-		tname := tname
-		tys[tname] = deferredValue{func() value {
-			return strValue(pretty(spec.Types[tname]))
-		}}
-	}
-
-	return v
 }
 
-func resValue(res schema.ResourceSpec) value {
-	r := make(mapValue)
-	r["desc"] = strValue(res.Description)
+func functionValue(spec schema.FunctionSpec) value.Value {
+	return strValue(pretty(spec))
+}
+
+func typeValue(spec schema.ComplexTypeSpec) value.Value {
+	return strValue(pretty(spec))
+}
+
+func resourceValue(res schema.ResourceSpec) value.Value {
+	m := &value.MapValue{Value: map[value.Symbol]value.Value{}}
+	m.Value[value.NewSymbol("desc")] = strValue(res.Description)
 	res.Description = ""
-	r["shape"] = strValue(pretty(res))
-	return r
+	m.Value[value.NewSymbol("shape")] = strValue(pretty(res))
+	return m
 }
 
-func schemaPrim() value {
-	spec, err := autoloadSchema()
-	if err != nil {
-		return errValue("%v", err)
+func functionsValue(spec *schema.PackageSpec) value.Value {
+	o := NewObject()
+	for name, spec := range spec.Functions {
+		o = o.With(name, functionValue(spec))
 	}
-	return schemaValue(spec)
+	o = o.ShownAs("<functions>")
+	return o.Value()
+}
+
+func resourcesValue(spec *schema.PackageSpec) value.Value {
+	o := NewObject()
+	for name, spec := range spec.Resources {
+		o = o.With(name, resourceValue(spec))
+	}
+	o = o.ShownAs("<resources>")
+	return o.Value()
+}
+
+func typesValue(spec *schema.PackageSpec) value.Value {
+	o := NewObject()
+	for name, spec := range spec.Types {
+		o = o.With(name, typeValue(spec))
+	}
+	o = o.ShownAs("<types>")
+	return o.Value()
+}
+
+func showPackageSpec(spec *schema.PackageSpec) string {
+	return fmt.Sprintf("<schema:%drs/%dfn/%dty>",
+		len(spec.Resources), len(spec.Functions), len(spec.Types))
+}
+
+func schemaValue(spec *schema.PackageSpec) value.Value {
+	return NewObject().
+		With("rs", resourcesValue(spec)).
+		With("fn", functionsValue(spec)).
+		With("ty", typesValue(spec)).
+		ShownAs(showPackageSpec(spec)).
+		Value()
 }
 
 func pretty(x any) string {
 	bs, _ := json.MarshalIndent(x, "", "  ")
 	return string(bs)
 }
+
+var (
+	schemaPrimValue = LazyValue(func() value.Value {
+		s, err := autoloadSchema()
+		if err != nil {
+			return &value.ErrorValue{
+				ErrorMessage: fmt.Sprintf("%v", err),
+			}
+		}
+		return schemaValue(s)
+	})
+)
