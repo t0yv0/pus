@@ -49,25 +49,6 @@ func autoloadSchema() (*schema.PackageSpec, error) {
 	return &packageSpec, nil
 }
 
-func strValue(s string) value.Value {
-	return &printable{StringValue: value.StringValue{
-		Value: s,
-	}}
-}
-
-type printable struct {
-	value.StringValue
-}
-
-func (p *printable) Run() value.Value {
-	fmt.Println(p.StringValue.Value)
-	return p
-}
-
-func (p *printable) Show() string {
-	return ""
-}
-
 func functionValue(spec schema.FunctionSpec) value.Value {
 	return strValue(pretty(spec))
 }
