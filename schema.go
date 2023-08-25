@@ -50,9 +50,22 @@ func autoloadSchema() (*schema.PackageSpec, error) {
 }
 
 func strValue(s string) value.Value {
-	return &value.StringValue{
+	return &printable{StringValue: value.StringValue{
 		Value: s,
-	}
+	}}
+}
+
+type printable struct {
+	value.StringValue
+}
+
+func (p *printable) Run() value.Value {
+	fmt.Println(p.StringValue.Value)
+	return p
+}
+
+func (p *printable) Show() string {
+	return ""
 }
 
 func functionValue(spec schema.FunctionSpec) value.Value {
@@ -63,12 +76,14 @@ func typeValue(spec schema.ComplexTypeSpec) value.Value {
 	return strValue(pretty(spec))
 }
 
-func resourceValue(res schema.ResourceSpec) value.Value {
-	m := &value.MapValue{Value: map[value.Symbol]value.Value{}}
-	m.Value[value.NewSymbol("desc")] = strValue(res.Description)
+func resourceValue(name string, res schema.ResourceSpec) value.Value {
+	desc := res.Description
 	res.Description = ""
-	m.Value[value.NewSymbol("shape")] = strValue(pretty(res))
-	return m
+	return NewObject().
+		With("desc", strValue(desc)).
+		With("shape", strValue(pretty(res))).
+		ShownAs(fmt.Sprintf("<resource:%s>", name)).
+		Value()
 }
 
 func functionsValue(spec *schema.PackageSpec) value.Value {
@@ -83,7 +98,7 @@ func functionsValue(spec *schema.PackageSpec) value.Value {
 func resourcesValue(spec *schema.PackageSpec) value.Value {
 	o := NewObject()
 	for name, spec := range spec.Resources {
-		o = o.With(name, resourceValue(spec))
+		o = o.With(name, resourceValue(name, spec))
 	}
 	o = o.ShownAs("<resources>")
 	return o.Value()

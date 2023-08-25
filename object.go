@@ -32,11 +32,9 @@ func (o *Object) Value() value.Value {
 		v := o.values[i]
 		m[s] = v
 	}
-	return &value.CustomValue{
-		ValueLike: &objectValue{
-			Value:   &value.MapValue{Value: m},
-			shownAs: o.shownAs,
-		},
+	return &objectValue{
+		Value:   &value.MapValue{Value: m},
+		shownAs: o.shownAs,
 	}
 }
 
