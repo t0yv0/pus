@@ -49,12 +49,24 @@ func autoloadSchema() (*schema.PackageSpec, error) {
 	return &packageSpec, nil
 }
 
-func functionValue(spec schema.FunctionSpec) value.Value {
-	return strValue(pretty(spec))
+func functionValue(name string, spec schema.FunctionSpec) value.Value {
+	desc := spec.Description
+	spec.Description = ""
+	return NewObject().
+		With("desc", strValue(desc)).
+		With("shape", datum(spec)).
+		ShownAs(fmt.Sprintf("<function:%s>", name)).
+		Value()
 }
 
-func typeValue(spec schema.ComplexTypeSpec) value.Value {
-	return strValue(pretty(spec))
+func typeValue(name string, spec schema.ComplexTypeSpec) value.Value {
+	desc := spec.Description
+	spec.Description = ""
+	return NewObject().
+		With("desc", strValue(desc)).
+		With("shape", datum(spec)).
+		ShownAs(fmt.Sprintf("<type:%s>", name)).
+		Value()
 }
 
 func resourceValue(name string, res schema.ResourceSpec) value.Value {
@@ -62,7 +74,7 @@ func resourceValue(name string, res schema.ResourceSpec) value.Value {
 	res.Description = ""
 	return NewObject().
 		With("desc", strValue(desc)).
-		With("shape", strValue(pretty(res))).
+		With("shape", datum(res)).
 		ShownAs(fmt.Sprintf("<resource:%s>", name)).
 		Value()
 }
@@ -70,7 +82,7 @@ func resourceValue(name string, res schema.ResourceSpec) value.Value {
 func functionsValue(spec *schema.PackageSpec) value.Value {
 	o := NewObject()
 	for name, spec := range spec.Functions {
-		o = o.With(name, functionValue(spec))
+		o = o.With(name, functionValue(name, spec))
 	}
 	o = o.ShownAs("<functions>")
 	return o.Value()
@@ -88,7 +100,7 @@ func resourcesValue(spec *schema.PackageSpec) value.Value {
 func typesValue(spec *schema.PackageSpec) value.Value {
 	o := NewObject()
 	for name, spec := range spec.Types {
-		o = o.With(name, typeValue(spec))
+		o = o.With(name, typeValue(name, spec))
 	}
 	o = o.ShownAs("<types>")
 	return o.Value()
@@ -106,11 +118,6 @@ func schemaValue(spec *schema.PackageSpec) value.Value {
 		With("ty", typesValue(spec)).
 		ShownAs(showPackageSpec(spec)).
 		Value()
-}
-
-func pretty(x any) string {
-	bs, _ := json.MarshalIndent(x, "", "  ")
-	return string(bs)
 }
 
 var (
