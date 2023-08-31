@@ -163,8 +163,8 @@ github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5
 github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcUk=
-github.com/t0yv0/complang v0.0.0-20230825013926-c6028e08fe77 h1:v1oj/SXwP5O9U/KNyaXg80oTJU0uHNkg4XQUvlfrOEM=
-github.com/t0yv0/complang v0.0.0-20230825013926-c6028e08fe77/go.mod h1:PU0/b8gNzMnME69Gs0pENd/Zy9EISLEoo5CKQKUPPbw=
+github.com/t0yv0/complang v0.0.0-20230825035411-f179585b0b2b h1:6fu4ef2zv2sVj/mvAcSD89feZH45R1SdTd6ETMEDlXU=
+github.com/t0yv0/complang v0.0.0-20230825035411-f179585b0b2b/go.mod h1:PU0/b8gNzMnME69Gs0pENd/Zy9EISLEoo5CKQKUPPbw=
 github.com/texttheater/golang-levenshtein v1.0.1 h1:+cRNoVrfiwufQPhoMzB6N0Yf/Mqajr6t1lOv8GyGE2U=
 github.com/texttheater/golang-levenshtein v1.0.1/go.mod h1:PYAKrbF5sAiq9wd+H82hs7gNaen0CplQ9uvm6+enD/8=
 github.com/tweekmonster/luser v0.0.0-20161003172636-3fa38070dbd7 h1:X9dsIWPuuEJlPX//UmRKophhOKCGXc46RVIGuttks68=

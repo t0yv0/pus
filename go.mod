@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/pulumi/pulumi/pkg/v3 v3.70.0
-	github.com/t0yv0/complang v0.0.0-20230825013926-c6028e08fe77
+	github.com/t0yv0/complang v0.0.0-20230825035411-f179585b0b2b
 )
 
 require (
