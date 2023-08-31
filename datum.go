@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/t0yv0/complang/value"
@@ -10,14 +9,10 @@ import (
 
 // Wraps a JSON-serializable value into an object for user interaction.
 func datum(raw any) value.Value {
-	v, err := jsonify(raw)
-	if err != nil {
-		return fromError(err)
-	}
-
+	v := mustJ(raw)
 	o := NewObject()
 
-	switch v := v.(type) {
+	switch v := v.v.(type) {
 	case string:
 		o = o.ShownAs(v)
 	default:
@@ -28,7 +23,7 @@ func datum(raw any) value.Value {
 		o = o.ShownAs(s)
 	}
 
-	switch v := v.(type) {
+	switch v := v.v.(type) {
 	case map[string]interface{}:
 		for key, subv := range v {
 			o = o.With(key, datum(subv))
@@ -40,18 +35,6 @@ func datum(raw any) value.Value {
 	}
 
 	return o.Value()
-}
-
-func jsonify(v any) (any, error) {
-	bytes, err := json.Marshal(v)
-	if err != nil {
-		return nil, err
-	}
-	var decoded any
-	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return nil, err
-	}
-	return decoded, nil
 }
 
 func showAny(v any) (string, error) {
