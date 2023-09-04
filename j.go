@@ -1,11 +1,23 @@
 package main
 
 import (
+	"reflect"
+
 	"encoding/json"
 )
 
+// Newtype-ish wrapper for JSON-like values, that is nulls, strings, numbers, bools and slices or
+// stringly-keyed maps over them.
 type j struct {
 	v interface{}
+}
+
+func (x j) String() string {
+	b, err := json.MarshalIndent(x.v, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+	return string(b)
 }
 
 func mustJ(v any) j {
@@ -31,12 +43,12 @@ func newJ(v any) (j, error) {
 	return j{decoded}, nil
 }
 
-func (inj j) clone() j {
-	return mustJ(inj.v)
+func (x j) clone() j {
+	return mustJ(x.v)
 }
 
-func (inj j) transform(f func(j) j) j {
-	switch jv := inj.v.(type) {
+func (x j) transform(f func(j) j) j {
+	switch jv := x.v.(type) {
 	case []interface{}:
 		tjv := []interface{}{}
 		for _, subj := range jv {
@@ -50,6 +62,77 @@ func (inj j) transform(f func(j) j) j {
 		}
 		return f(j{tjv})
 	default:
-		return f(inj)
+		return f(x)
 	}
+}
+
+func (x j) diff(y j) (j, bool) {
+	switch xv := x.v.(type) {
+	case []interface{}:
+		switch yv := y.v.(type) {
+		case []interface{}:
+			d := []interface{}{}
+			for _, ed := range diff(reflect.DeepEqual, xv, yv) {
+				switch ed.change {
+				case insert:
+					d = append(d, j{ed.element}.added().v)
+				case remove:
+					d = append(d, j{ed.element}.removed().v)
+				case keep:
+					d = append(d, j{ed.element}.v)
+				}
+			}
+			return mustJ(d), true
+		default:
+			return x.changed(y), true
+		}
+	case map[string]interface{}:
+		switch yv := y.v.(type) {
+		case map[string]interface{}:
+			diffmap := map[string]interface{}{}
+			eq := true
+			for k, xvv := range xv {
+				yvv, ok := yv[k]
+				if !ok {
+					eq = false
+					diffmap[k] = j{xvv}.removed().v
+				} else {
+					xdy, xneqy := j{xvv}.diff(j{yvv})
+					if xneqy {
+						eq = false
+						diffmap[k] = xdy.v
+					}
+				}
+			}
+			for k, yvv := range yv {
+				if _, ok := xv[k]; !ok {
+					eq = false
+					diffmap[k] = j{yvv}.added().v
+				}
+			}
+			if eq {
+				return j{}, false
+			}
+			return mustJ(diffmap), true
+		default:
+			return x.changed(y), true
+		}
+	default:
+		if reflect.DeepEqual(x.v, y.v) {
+			return j{}, false
+		}
+		return x.changed(y), true
+	}
+}
+
+func (x j) removed() j {
+	return mustJ(map[string]interface{}{"-": x.v})
+}
+
+func (x j) added() j {
+	return mustJ(map[string]interface{}{"+": x.v})
+}
+
+func (x j) changed(y j) j {
+	return mustJ(map[string]interface{}{"-": x.v, "+": y.v})
 }
