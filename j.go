@@ -72,15 +72,22 @@ func (x j) diff(y j) (j, bool) {
 		switch yv := y.v.(type) {
 		case []interface{}:
 			d := []interface{}{}
-			for _, ed := range diff(reflect.DeepEqual, xv, yv) {
+			diffs := diff(reflect.DeepEqual, xv, yv)
+			xeqy := true
+			for _, ed := range diffs {
 				switch ed.change {
 				case insert:
 					d = append(d, j{ed.element}.added().v)
+					xeqy = false
 				case remove:
 					d = append(d, j{ed.element}.removed().v)
+					xeqy = false
 				case keep:
 					d = append(d, j{ed.element}.v)
 				}
+			}
+			if xeqy {
+				return j{}, false
 			}
 			return mustJ(d), true
 		default:

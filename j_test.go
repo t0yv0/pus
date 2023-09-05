@@ -35,4 +35,10 @@ func TestDiffJ(t *testing.T) {
 			map[string]interface{}{"+": float64(5)},
 		},
 	}, dxy.v)
+
+	x = mustJ([]interface{}{
+		"id",
+	})
+	_, xneqx := x.diff(x)
+	assert.False(t, xneqx)
 }
