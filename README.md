@@ -4,7 +4,8 @@ Loads and explores [Pulumi Package Schema](https://www.pulumi.com/docs/using-pul
 
 ## Getting Started
 
-Execute `pus` in a context of a checked out repo such as `pulumi/pulumi-cloudflare`. Try auto-complete on functions:
+Execute `pus` in a context of a checked out repo such as `pulumi/pulumi-cloudflare`. The built-in
+`$schema` loads the package schema and allows auto-complete to explore it:
 
     » $schema
     <schema:97rs/15fn/267ty>
@@ -22,7 +23,36 @@ Execute `pus` in a context of a checked out repo such as `pulumi/pulumi-cloudfla
     cloudflare:index/getAccessIdentityProvider:getAccessIdentityProvider
     cloudflare:index/getApiTokenPermissionGroups:getApiTokenPermissionGroups
 
-Inspecting an object further:
+If your workspace has schema edit relative to HEAD, `pus` can help explore the diff hierarchically:
+
+    » $schema diff resources aws:a<TAB>
+    aws:accessanalyzer/analyzer:Analyzer
+    aws:account/primaryContact:PrimaryContact
+    aws:acmpca/certificateAuthority:CertificateAuthority
+    aws:alb/listenerCertificate:ListenerCertificate
+    aws:alb/targetGroup:TargetGroup
+    aws:amp/workspace:Workspace
+    
+At the leaves of the diff tree, text nodes render as a linewise diff, for example:
+
+    » $schema diff resources aws:amp/workspace:Workspace description
+      {{% /example %}}
+      {{% /examples %}}
+
+      ## Import
+    - 
+    - terraform import {
+
+    -  to = aws_prometheus_workspace.demo
+    + Using `pulumi import`, import AMP Workspaces using the identifier. For example:
+
+    -  id = "ws-C6DCB907-F2D7-4D96-957B-66691F865D8B" } Using `pulumi import`, import AMP Workspaces using the identifier. For exampleconsole % pulumi import aws_prometheus_workspace.demo ws-C6DCB907-F2D7-4D96-957B-66691F865D8B 
+    + ``sh
+    +  $ pulumi import aws:amp/workspace:Workspace demo ws-C6DCB907-F2D7-4D96-957B-66691F865D8B
+    + ``
+    +  
+    
+Every object can be explored further down with auto-complete:
 
     » $schema fn cloudflare:index/getZones:getZones schema outputs properties filter
     $ref: '#/types/cloudflare:index/getZonesFilter:getZonesFilter'
