@@ -1,5 +1,11 @@
 package main
 
+import (
+	"bytes"
+	"fmt"
+	"strings"
+)
+
 func diff[T any](eq func(T, T) bool, xs, ys []T) []edit[T] {
 	d := &differ[T]{eq, xs, ys}
 	return d.diff()
@@ -120,4 +126,38 @@ func (m *matrix[T]) set(i, j int, v T) {
 
 func (m *matrix[T]) index(i, j int) int {
 	return m.n*i + j
+}
+
+func diffLines(text1, text2 string) string {
+	diffs := diff(func(a, b string) bool { return a == b },
+		strings.Split(text1, "\n"),
+		strings.Split(text2, "\n"))
+	var buf bytes.Buffer
+	changed := false
+	for i, ed := range diffs {
+		switch ed.change {
+		case insert:
+			fmt.Fprintf(&buf, "+ %s\n", ed.element)
+			changed = true
+		case remove:
+			fmt.Fprintf(&buf, "- %s\n", ed.element)
+			changed = true
+		case keep:
+			nearChanges := false
+			d := 5
+			for j := i - d; j <= i+d && j >= 0 && j < len(diffs); j++ {
+				switch diffs[j].change {
+				case insert, remove:
+					nearChanges = true
+				}
+			}
+			if nearChanges {
+				fmt.Fprintf(&buf, "  %s\n", ed.element)
+			}
+		}
+	}
+	if !changed {
+		return ""
+	}
+	return buf.String()
 }

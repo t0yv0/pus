@@ -16,7 +16,10 @@ func detectSchemaFile() (string, error) {
 	if _, err := os.ReadFile("schema.json"); err == nil {
 		return "schema.json", nil
 	}
+	return detectSchemaGitPath()
+}
 
+func detectSchemaGitPath() (string, error) {
 	cmd := exec.Command("git", "ls-files", "**schema.json")
 	out := &bytes.Buffer{}
 	cmd.Stdout = out
@@ -31,6 +34,25 @@ func detectSchemaFile() (string, error) {
 		return "", fmt.Errorf("No schema found by calling `git ls-files **schema.json`")
 	}
 	return s, nil
+}
+
+func loadSchemaAtGitRef(ref string) (*schema.PackageSpec, error) {
+	schemaPath, err := detectSchemaGitPath()
+	if err != nil {
+		return nil, err
+	}
+	var buf bytes.Buffer
+	cmd := exec.Command("git", "show", fmt.Sprintf("%s:%s", ref, schemaPath))
+	cmd.Stdout = &buf
+	cmd.Stderr = &bytes.Buffer{}
+	if err := cmd.Run(); err != nil {
+		return nil, err
+	}
+	var s schema.PackageSpec
+	if err := json.Unmarshal(buf.Bytes(), &s); err != nil {
+		return nil, err
+	}
+	return &s, nil
 }
 
 func autoloadSchema() (*schema.PackageSpec, error) {
@@ -119,8 +141,26 @@ func schemaValue(spec *schema.PackageSpec) value.Value {
 		With("rs", resourcesValue(spec)).
 		With("fn", functionsValue(spec)).
 		With("ty", typesValue(spec)).
+		With("diff", LazyValue(func() value.Value { return schemaDiff(spec) })).
 		ShownAs(showPackageSpec(spec)).
 		Value()
+}
+
+// Diff between baseline value retrieved as follows, and the given value.
+//
+//	git show HEAD:..schema.json
+func schemaDiff(given *schema.PackageSpec) value.Value {
+	baseline, err := loadSchemaAtGitRef("HEAD")
+	if err != nil {
+		return &value.ErrorValue{
+			ErrorMessage: fmt.Sprintf("%v", err),
+		}
+	}
+	diff, hasDiff := mustJ(baseline).diff(mustJ(given))
+	if hasDiff {
+		return datum(diff.v)
+	}
+	return datum("No schema changes between HEAD and current version")
 }
 
 var (

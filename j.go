@@ -2,6 +2,7 @@ package main
 
 import (
 	"reflect"
+	"strings"
 
 	"encoding/json"
 )
@@ -127,6 +128,16 @@ func (x j) diff(y j) (j, bool) {
 	default:
 		if reflect.DeepEqual(x.v, y.v) {
 			return j{}, false
+		}
+		// Diff large strings line-wise.
+		if xs, ok := x.v.(string); ok {
+			if ys, ok := y.v.(string); ok {
+				xlines := strings.Split(xs, "\n")
+				ylines := strings.Split(ys, "\n")
+				if len(xlines) > 1 && len(ylines) > 1 {
+					return mustJ(diffLines(xs, ys)), true
+				}
+			}
 		}
 		return x.changed(y), true
 	}
