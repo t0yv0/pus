@@ -72,36 +72,42 @@ func autoloadSchema() (*schema.PackageSpec, error) {
 }
 
 func functionValue(name string, pkg *schema.PackageSpec, spec schema.FunctionSpec) value.Value {
-	desc := spec.Description
-	spec.Description = ""
-	return NewObject().
-		With("desc", strValue(desc)).
-		With("rawSchema", datum(spec)).
-		With("schema", datum(inlineRefs(pkg, spec))).
-		ShownAs(fmt.Sprintf("<function:%s>", name)).
-		Value()
+	return LazyValue(func() value.Value {
+		desc := spec.Description
+		spec.Description = ""
+		return NewObject().
+			With("desc", strValue(desc)).
+			With("rawSchema", datum(spec)).
+			With("schema", datum(inlineRefs(pkg, spec))).
+			ShownAs(fmt.Sprintf("<function:%s>", name)).
+			Value()
+	})
 }
 
 func typeValue(name string, pkg *schema.PackageSpec, spec schema.ComplexTypeSpec) value.Value {
-	desc := spec.Description
-	spec.Description = ""
-	return NewObject().
-		With("desc", strValue(desc)).
-		With("rawSchema", datum(spec)).
-		With("schema", datum(inlineRefs(pkg, spec))).
-		ShownAs(fmt.Sprintf("<type:%s>", name)).
-		Value()
+	return LazyValue(func() value.Value {
+		desc := spec.Description
+		spec.Description = ""
+		return NewObject().
+			With("desc", strValue(desc)).
+			With("rawSchema", datum(spec)).
+			With("schema", datum(inlineRefs(pkg, spec))).
+			ShownAs(fmt.Sprintf("<type:%s>", name)).
+			Value()
+	})
 }
 
 func resourceValue(name string, pkg *schema.PackageSpec, res schema.ResourceSpec) value.Value {
-	desc := res.Description
-	res.Description = ""
-	return NewObject().
-		With("desc", strValue(desc)).
-		With("rawSchema", datum(res)).
-		With("schema", datum(inlineRefs(pkg, res))).
-		ShownAs(fmt.Sprintf("<resource:%s>", name)).
-		Value()
+	return LazyValue(func() value.Value {
+		desc := res.Description
+		res.Description = ""
+		return NewObject().
+			With("desc", strValue(desc)).
+			With("rawSchema", datum(res)).
+			With("schema", datum(inlineRefs(pkg, res))).
+			ShownAs(fmt.Sprintf("<resource:%s>", name)).
+			Value()
+	})
 }
 
 func functionsValue(spec *schema.PackageSpec) value.Value {
