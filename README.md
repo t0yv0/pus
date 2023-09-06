@@ -89,6 +89,22 @@ You can save an object of interest such as the located function to a variable:
 
     » $getZone = $schema fn cloudflare:index/getZone:getZone
 
+## Features
+
+### Ref Inlining
+
+Pulumi Package Schema supports references to named types, which can come from the local or external
+package. References are also critical for working recursive types.
+
+```
+$ref: '#/types/cloudflare:index/getZonesFilter:getZonesFilter'
+```
+
+Currently `pus` viewer inlines the content of local references while also retaining the `$ref` data.
+This makes it easier to view and compare nested object schemata.
+
+Inlining non-local references and proper support for cyclic types is not implemented yet.
+
 ## Language
 
 See [complang](https://github.com/t0yv0/complang) for more info on the underlying language.
