@@ -164,8 +164,8 @@ github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcUk=
 github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
-github.com/t0yv0/complang v0.0.0-20230913034518-82951b0ebd28 h1:AAzVhbVwH9utRSPFjCFwYOxqgw4jH606QgH6YowDgTI=
-github.com/t0yv0/complang v0.0.0-20230913034518-82951b0ebd28/go.mod h1:GlE5nnuXuNYwu8/Qpvs/hPavui3b2NyN9MevIy9pCuk=
+github.com/t0yv0/complang v0.0.0-20230913035216-e37c048da083 h1:JNEgK3WFKneU2wm8cjISrHANW9mWPdmh+BEwTKrPLwU=
+github.com/t0yv0/complang v0.0.0-20230913035216-e37c048da083/go.mod h1:GlE5nnuXuNYwu8/Qpvs/hPavui3b2NyN9MevIy9pCuk=
 github.com/t0yv0/readline v0.0.0-20230907050713-5bb033bdf64f h1:YlU7tDneu8n+dRXrBzRvFwH7mZfp/R06qRde6G3/YzI=
 github.com/t0yv0/readline v0.0.0-20230907050713-5bb033bdf64f/go.mod h1:Eh+b79XXUwfKfcPLepksvw2tcLE/Ct21YObkaSkeBlk=
 github.com/texttheater/golang-levenshtein v1.0.1 h1:+cRNoVrfiwufQPhoMzB6N0Yf/Mqajr6t1lOv8GyGE2U=

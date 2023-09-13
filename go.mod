@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/pulumi/pulumi/pkg/v3 v3.70.0
-	github.com/t0yv0/complang v0.0.0-20230913034518-82951b0ebd28
+	github.com/t0yv0/complang v0.0.0-20230913035216-e37c048da083
 )
 
 replace github.com/chzyer/readline => github.com/t0yv0/readline v0.0.0-20230907050713-5bb033bdf64f
