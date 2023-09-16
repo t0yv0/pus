@@ -24,6 +24,7 @@ type jfrag any // Union[int,string]
 
 func (jv *jview) ToValue() value.Value {
 	return LazyValue(func() value.Value {
+		c := jv.Current
 		o := NewObject()
 		switch {
 		case jv.IsMap():
@@ -31,25 +32,25 @@ func (jv *jview) ToValue() value.Value {
 			for k, v := range m {
 				o = o.With(k, v.ToValue())
 			}
-			if isCompact(jv.Current) {
-				o = o.ShownAs(jv.Current.String())
+			if isCompact(c) {
+				o = o.ShownAs(c.String())
 			} else {
-				o = o.RunAs(func() value.Value { return showInFX(jv.Current) })
+				o = o.RunAs(func() value.Value { return showInFX(c) })
 			}
 		case jv.IsList():
 			ll := jv.AsList()
 			for i, v := range ll {
 				o = o.With(fmt.Sprintf("_%d", i), v.ToValue())
 			}
-			if isCompact(jv.Current) {
-				o = o.ShownAs(jv.Current.String())
+			if isCompact(c) {
+				o = o.ShownAs(c.String())
 			} else {
-				o = o.RunAs(func() value.Value { return showInFX(jv.Current) })
+				o = o.RunAs(func() value.Value { return showInFX(c) })
 			}
 		case jv.IsText():
 			o = o.ShownAs(jv.Text())
 		default:
-			o = o.ShownAs(jv.Current.String())
+			o = o.ShownAs(c.String())
 		}
 		o = jv.Extend(jv, o)
 		return o.Value()
@@ -76,6 +77,7 @@ func (jv *jview) AsMap() map[string]*jview {
 			Transform: jv.Transform,
 			Extend:    jv.Extend,
 		}
+		ret[k].Current = jv.Transform(ret[k])
 	}
 	return ret
 }

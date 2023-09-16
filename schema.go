@@ -78,7 +78,7 @@ func functionValue(name string, pkg *schema.PackageSpec, spec schema.FunctionSpe
 		return NewObject().
 			With("desc", strValue(desc)).
 			With("rawSchema", datum(spec)).
-			With("schema", datum(inlineRefs(pkg, spec))).
+			//With("schema", datum(inlineRefs(pkg, spec))).
 			ShownAs(fmt.Sprintf("<function:%s>", name)).
 			Value()
 	})
@@ -91,7 +91,7 @@ func typeValue(name string, pkg *schema.PackageSpec, spec schema.ComplexTypeSpec
 		return NewObject().
 			With("desc", strValue(desc)).
 			With("rawSchema", datum(spec)).
-			With("schema", datum(inlineRefs(pkg, spec))).
+			//With("schema", datum(inlineRefs(pkg, spec))).
 			ShownAs(fmt.Sprintf("<type:%s>", name)).
 			Value()
 	})
@@ -104,7 +104,7 @@ func resourceValue(name string, pkg *schema.PackageSpec, res schema.ResourceSpec
 		return NewObject().
 			With("desc", strValue(desc)).
 			With("rawSchema", datum(res)).
-			With("schema", datum(inlineRefs(pkg, res))).
+			//With("schema", datum(inlineRefs(pkg, res))).
 			ShownAs(fmt.Sprintf("<resource:%s>", name)).
 			Value()
 	})
@@ -199,8 +199,8 @@ var (
 //	            description: |
 //	                The account identifier to target for the resource.
 //	            type: string
-func inlineRefs(s *schema.PackageSpec, v any) any {
-	return mustJ(v).transform(func(inj j) j {
+func inlineRefs(s *schema.PackageSpec, v j) j {
+	return v.transform(func(inj j) j {
 		switch injv := inj.v.(type) {
 		case map[string]interface{}:
 			ref, hasRef := injv["$ref"]
