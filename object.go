@@ -8,6 +8,7 @@ type Object struct {
 	syms    []value.Symbol
 	values  []value.Value
 	shownAs string
+	runAs   func() value.Value
 }
 
 func (o *Object) ShownAs(printed string) *Object {
@@ -15,6 +16,16 @@ func (o *Object) ShownAs(printed string) *Object {
 		syms:    o.syms,
 		values:  o.values,
 		shownAs: printed,
+		runAs:   o.runAs,
+	}
+}
+
+func (o *Object) RunAs(runAs func() value.Value) *Object {
+	return &Object{
+		syms:    o.syms,
+		values:  o.values,
+		shownAs: o.shownAs,
+		runAs:   runAs,
 	}
 }
 
@@ -23,6 +34,7 @@ func (o *Object) With(field string, v value.Value) *Object {
 		syms:    append(o.syms, value.NewSymbol(field)),
 		values:  append(o.values, v),
 		shownAs: o.shownAs,
+		runAs:   o.runAs,
 	}
 }
 
@@ -35,6 +47,7 @@ func (o *Object) Value() value.Value {
 	return &objectValue{
 		Value:   &value.MapValue{Value: m},
 		shownAs: o.shownAs,
+		runAs:   o.runAs,
 	}
 }
 
@@ -45,9 +58,13 @@ func NewObject() *Object {
 type objectValue struct {
 	value.Value
 	shownAs string
+	runAs   func() value.Value
 }
 
 func (ov *objectValue) Run() value.Value {
+	if ov.runAs != nil {
+		return ov.runAs()
+	}
 	return ov
 }
 
