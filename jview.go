@@ -1,12 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
 	"strings"
 
-	"bytes"
 	"github.com/t0yv0/complang/value"
 )
 
