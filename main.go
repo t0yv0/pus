@@ -1,55 +1,30 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
+	"context"
 	"log"
 
-	"github.com/pulumi/pulumi/pkg/v3/codegen/schema"
+	"github.com/t0yv0/complang"
 	"github.com/t0yv0/complang/repl"
-	"github.com/t0yv0/complang/value"
 )
 
 func main() {
-	schemaPrim := LazyValue(func() value.Value {
-		s, err := autoloadSchema()
+	ctx := context.Background()
+	schema := complang.LazyValue(func() complang.Value {
+		s, err := LoadSchema()
 		if err != nil {
-			return &value.ErrorValue{
-				ErrorMessage: fmt.Sprintf("%v", err),
-			}
+			return complang.BindValue(err)
 		}
-		r := mustJ(s)
-		jv := &jview{
-			Root:      r,
-			Current:   r,
-			Path:      nil,
-			Transform: transform,
-			Extend: func(jv *jview, o *Object) *Object {
-				return o
-			},
-		}
-		return jv.ToValue()
+		return complang.BindValue(s)
 	})
-
-	err := repl.ReadEvalPrintLoop(repl.ReadEvalPrintLoopOptions{
-		HistoryFile: "/tmp/pus.readline.history",
-		InitialEnvironment: map[value.Symbol]value.Value{
-			value.NewSymbol("$schema"): schemaPrim,
+	err := repl.ReadEvalPrintLoop(ctx, repl.ReadEvalPrintLoopOptions{
+		MaxCompletions: 16,
+		HistoryFile:    "/tmp/pus.readline.history",
+		InitialEnvironment: map[string]complang.Value{
+			"$schema": schema,
 		},
 	})
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-func transform(jv *jview) j {
-	if len(jv.Path) > 3 {
-		var s schema.PackageSpec
-		if err := json.Unmarshal([]byte(jv.Root.String()), &s); err == nil {
-			re := inlineRefs(&s, jv.Current)
-			fmt.Sprintln(re.String())
-			return re
-		}
-	}
-	return jv.Current
 }

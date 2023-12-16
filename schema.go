@@ -9,8 +9,180 @@ import (
 	"strings"
 
 	"github.com/pulumi/pulumi/pkg/v3/codegen/schema"
-	"github.com/t0yv0/complang/value"
+	"github.com/t0yv0/complang"
 )
+
+type Schema struct {
+	packageSpec *schema.PackageSpec
+}
+
+func (s *Schema) Name() string {
+	return s.packageSpec.Name
+}
+
+func (s *Schema) DisplayName() string {
+	return s.packageSpec.DisplayName
+}
+
+func (s *Schema) Version() string {
+	return s.packageSpec.Version
+}
+
+func (s *Schema) Description() string {
+	return s.packageSpec.Description
+}
+
+func (s *Schema) Keywords() []string {
+	return s.packageSpec.Keywords
+}
+
+func (s *Schema) Homepage() string {
+	return s.packageSpec.Homepage
+}
+
+func (s *Schema) License() string {
+	return s.packageSpec.License
+}
+
+func (s *Schema) Attribution() string {
+	return s.packageSpec.Attribution
+}
+
+func (s *Schema) Repository() string {
+	return s.packageSpec.Repository
+}
+
+func (s Schema) LogoURL() string {
+	return s.packageSpec.LogoURL
+}
+
+func (s *Schema) PluginDownloadURL() string {
+	return s.packageSpec.PluginDownloadURL
+}
+
+func (s *Schema) Publisher() string {
+	return s.packageSpec.Publisher
+}
+
+func (s *Schema) AllowedPackageNames() []string {
+	return s.packageSpec.AllowedPackageNames
+}
+
+func (s *Schema) Language() complang.Value {
+	return complang.BindValue(mustJ(s.packageSpec.Language).v)
+}
+
+func (s *Schema) Config() complang.Value {
+	return complang.BindValue(inlineRefs(s.packageSpec, mustJ(s.packageSpec.Config)).v)
+}
+
+func (s *Schema) Meta() complang.Value {
+	return complang.BindValue(inlineRefs(s.packageSpec, mustJ(s.packageSpec.Meta)).v)
+}
+
+func (s *Schema) Provider() complang.Value {
+	return complang.BindValue(inlineRefs(s.packageSpec, mustJ(s.packageSpec.Provider)).v)
+}
+
+func (s *Schema) Resources() map[string]complang.Value {
+	m := map[string]complang.Value{}
+	for k, v := range s.packageSpec.Resources {
+		m[k] = newResource(s, k, v)
+	}
+	return m
+}
+
+func (s *Schema) Functions() map[string]complang.Value {
+	m := map[string]complang.Value{}
+	for k, v := range s.packageSpec.Functions {
+		m[k] = newFunction(s, k, v)
+	}
+	return m
+}
+
+func (s *Schema) Types() map[string]complang.Value {
+	m := map[string]complang.Value{}
+	for k, v := range s.packageSpec.Types {
+		m[k] = newType(s, k, v)
+	}
+	return m
+}
+
+type Resource struct {
+	schema *Schema
+	token  string
+	res    schema.ResourceSpec
+	desc   string
+}
+
+func newResource(s *Schema, tok string, res schema.ResourceSpec) complang.Value {
+	copy := res
+	copy.Description = ""
+	schema := inlineRefs(s.packageSpec, mustJ(copy)).v
+	return complang.OverloadedValue(
+		complang.BindValue(Resource{s, tok, res, res.Description}),
+		complang.BindValue(schema),
+	)
+}
+
+func (r Resource) Description() string {
+	return r.desc
+}
+
+func (r Resource) Token() string {
+	return r.token
+}
+
+type Function struct {
+	schema *Schema
+	token  string
+	fu     schema.FunctionSpec
+	desc   string
+}
+
+func newFunction(s *Schema, tok string, fu schema.FunctionSpec) complang.Value {
+	copy := fu
+	copy.Description = ""
+	schema := inlineRefs(s.packageSpec, mustJ(copy)).v
+
+	return complang.OverloadedValue(
+		complang.BindValue(Function{s, tok, fu, fu.Description}),
+		complang.BindValue(schema),
+	)
+}
+
+func (f Function) Token() string {
+	return f.token
+}
+
+func (f Function) Description() string {
+	return f.desc
+}
+
+type Type struct {
+	schema *Schema
+	token  string
+	ty     schema.ComplexTypeSpec
+}
+
+func newType(s *Schema, tok string, ty schema.ComplexTypeSpec) complang.Value {
+	return complang.OverloadedValue(
+		complang.BindValue(Type{s, tok, ty}),
+		complang.BindValue(inlineRefs(s.packageSpec, mustJ(ty)).v),
+	)
+}
+
+func (f Type) Token() string {
+	return f.token
+}
+
+func LoadSchema() (*Schema, error) {
+	spec, err := autoloadSchema()
+	if err != nil {
+		return nil, err
+	}
+	return &Schema{spec}, nil
+}
 
 func detectSchemaFile() (string, error) {
 	if _, err := os.ReadFile("schema.json"); err == nil {
@@ -71,115 +243,22 @@ func autoloadSchema() (*schema.PackageSpec, error) {
 	return &packageSpec, nil
 }
 
-func functionValue(name string, pkg *schema.PackageSpec, spec schema.FunctionSpec) value.Value {
-	return LazyValue(func() value.Value {
-		desc := spec.Description
-		spec.Description = ""
-		return NewObject().
-			With("desc", strValue(desc)).
-			With("rawSchema", datum(spec)).
-			//With("schema", datum(inlineRefs(pkg, spec))).
-			ShownAs(fmt.Sprintf("<function:%s>", name)).
-			Value()
-	})
-}
-
-func typeValue(name string, pkg *schema.PackageSpec, spec schema.ComplexTypeSpec) value.Value {
-	return LazyValue(func() value.Value {
-		desc := spec.Description
-		spec.Description = ""
-		return NewObject().
-			With("desc", strValue(desc)).
-			With("rawSchema", datum(spec)).
-			//With("schema", datum(inlineRefs(pkg, spec))).
-			ShownAs(fmt.Sprintf("<type:%s>", name)).
-			Value()
-	})
-}
-
-func resourceValue(name string, pkg *schema.PackageSpec, res schema.ResourceSpec) value.Value {
-	return LazyValue(func() value.Value {
-		desc := res.Description
-		res.Description = ""
-		return NewObject().
-			With("desc", strValue(desc)).
-			With("rawSchema", datum(res)).
-			//With("schema", datum(inlineRefs(pkg, res))).
-			ShownAs(fmt.Sprintf("<resource:%s>", name)).
-			Value()
-	})
-}
-
-func functionsValue(spec *schema.PackageSpec) value.Value {
-	o := NewObject()
-	for name, fspec := range spec.Functions {
-		o = o.With(name, functionValue(name, spec, fspec))
-	}
-	o = o.ShownAs("<functions>")
-	return o.Value()
-}
-
-func resourcesValue(spec *schema.PackageSpec) value.Value {
-	o := NewObject()
-	for name, rspec := range spec.Resources {
-		o = o.With(name, resourceValue(name, spec, rspec))
-	}
-	o = o.ShownAs("<resources>")
-	return o.Value()
-}
-
-func typesValue(spec *schema.PackageSpec) value.Value {
-	o := NewObject()
-	for name, tspec := range spec.Types {
-		o = o.With(name, typeValue(name, spec, tspec))
-	}
-	o = o.ShownAs("<types>")
-	return o.Value()
-}
-
-func showPackageSpec(spec *schema.PackageSpec) string {
-	return fmt.Sprintf("<schema:%drs/%dfn/%dty>",
-		len(spec.Resources), len(spec.Functions), len(spec.Types))
-}
-
-func schemaValue(spec *schema.PackageSpec) value.Value {
-	return NewObject().
-		With("rs", resourcesValue(spec)).
-		With("fn", functionsValue(spec)).
-		With("ty", typesValue(spec)).
-		With("diff", LazyValue(func() value.Value { return schemaDiff(spec) })).
-		ShownAs(showPackageSpec(spec)).
-		Value()
-}
-
 // Diff between baseline value retrieved as follows, and the given value.
 //
 //	git show HEAD:..schema.json
-func schemaDiff(given *schema.PackageSpec) value.Value {
+func (s *Schema) Diff() complang.Value {
 	baseline, err := loadSchemaAtGitRef("HEAD")
 	if err != nil {
-		return &value.ErrorValue{
+		return &complang.Error{
 			ErrorMessage: fmt.Sprintf("%v", err),
 		}
 	}
-	diff, hasDiff := mustJ(baseline).diff(mustJ(given))
+	diff, hasDiff := mustJ(baseline).diff(mustJ(s.packageSpec))
 	if hasDiff {
-		return datum(diff.v)
+		return complang.BindValue(diff.v)
 	}
-	return datum("No schema changes between HEAD and current version")
+	return complang.BindValue("No schema changes between HEAD and current version")
 }
-
-var (
-	schemaPrimValue = LazyValue(func() value.Value {
-		s, err := autoloadSchema()
-		if err != nil {
-			return &value.ErrorValue{
-				ErrorMessage: fmt.Sprintf("%v", err),
-			}
-		}
-		return schemaValue(s)
-	})
-)
 
 // Inlines local type references for easier viewing and diffing.
 //

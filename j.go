@@ -1,10 +1,10 @@
 package main
 
 import (
-	"reflect"
-	"strings"
-
 	"encoding/json"
+	"reflect"
+
+	"github.com/t0yv0/godifft"
 )
 
 // Newtype-ish wrapper for JSON-like values, that is nulls, strings, numbers, bools and slices or
@@ -67,80 +67,26 @@ func (x j) transform(f func(j) j) j {
 	}
 }
 
-func (x j) diff(y j) (j, bool) {
-	switch xv := x.v.(type) {
-	case []interface{}:
-		switch yv := y.v.(type) {
-		case []interface{}:
-			d := []interface{}{}
-			diffs := diff(reflect.DeepEqual, xv, yv)
-			xeqy := true
-			for _, ed := range diffs {
-				switch ed.change {
-				case insert:
-					d = append(d, j{ed.element}.added().v)
-					xeqy = false
-				case remove:
-					d = append(d, j{ed.element}.removed().v)
-					xeqy = false
-				case keep:
-					d = append(d, j{ed.element}.v)
-				}
-			}
-			if xeqy {
-				return j{}, false
-			}
-			return mustJ(d), true
-		default:
-			return x.changed(y), true
-		}
-	case map[string]interface{}:
-		switch yv := y.v.(type) {
-		case map[string]interface{}:
-			diffmap := map[string]interface{}{}
-			eq := true
-			for k, xvv := range xv {
-				yvv, ok := yv[k]
-				if !ok {
-					eq = false
-					diffmap[k] = j{xvv}.removed().v
-				} else {
-					xdy, xneqy := j{xvv}.diff(j{yvv})
-					if xneqy {
-						eq = false
-						diffmap[k] = xdy.v
-					}
-				}
-			}
-			for k, yvv := range yv {
-				if _, ok := xv[k]; !ok {
-					eq = false
-					diffmap[k] = j{yvv}.added().v
-				}
-			}
-			if eq {
-				return j{}, false
-			}
-			return mustJ(diffmap), true
-		default:
-			return x.changed(y), true
-		}
-	default:
-		if reflect.DeepEqual(x.v, y.v) {
-			return j{}, false
-		}
-		// Diff large strings line-wise.
-		if xs, ok := x.v.(string); ok {
-			if ys, ok := y.v.(string); ok {
-				xlines := strings.Split(xs, "\n")
-				ylines := strings.Split(ys, "\n")
-				if len(xlines) > 1 && len(ylines) > 1 {
-					return mustJ(diffLines(xs, ys)), true
-				}
-			}
-		}
-		return x.changed(y), true
+type jDiffer struct{}
+
+var _ godifft.Differ[any, any] = (*jDiffer)(nil)
+
+func (jd *jDiffer) Added(x any) any   { return mustJ(x).added().v }
+func (jd *jDiffer) Removed(x any) any { return mustJ(x).removed().v }
+
+func (jd *jDiffer) Diff(x, y any) (any, bool) {
+	if reflect.DeepEqual(x, y) {
+		return nil, false
 	}
+	return mustJ(x).changed(mustJ(y)).v, true
+}
+
+func (x j) diff(y j) (j, bool) {
+	d, ok := godifft.DiffTree(&jDiffer{}, reflect.DeepEqual, x.v, y.v)
+	if !ok {
+		return mustJ(nil), false
+	}
+	return mustJ(d), true
 }
 
 func (x j) removed() j {
