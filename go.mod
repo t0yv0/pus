@@ -1,17 +1,17 @@
 module github.com/t0yv0/pus
 
-go 1.20
+go 1.21.4
 
 require (
 	github.com/pulumi/pulumi/pkg/v3 v3.70.0
-	github.com/t0yv0/complang v0.0.0-20230913035216-e37c048da083
+	github.com/t0yv0/complang v0.0.0-20231216213619-3f0addea2d97
 )
 
 replace github.com/chzyer/readline => github.com/t0yv0/readline v0.0.0-20230907050713-5bb033bdf64f
 
 require (
 	github.com/stretchr/testify v1.8.4
-	gopkg.in/yaml.v3 v3.0.1
+	github.com/t0yv0/godifft v0.0.0-20231216213649-ecaba927cc38
 )
 
 require (
@@ -82,6 +82,7 @@ require (
 	google.golang.org/grpc v1.55.0 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	lukechampine.com/frand v1.4.2 // indirect
 	sourcegraph.com/sourcegraph/appdash v0.0.0-20211028080628-e2786a622600 // indirect
 )
