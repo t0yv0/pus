@@ -23,16 +23,16 @@ func TestDiffJ(t *testing.T) {
 	assert.True(t, xneqy)
 	assert.Equal(t, map[string]interface{}{
 		"a": map[string]interface{}{
-			"+": float64(2),
-			"-": float64(1),
+			"add": float64(2),
+			"rm":  float64(1),
 		},
 		"c": []interface{}{
-			map[string]interface{}{"+": float64(0)},
+			map[string]interface{}{"add": float64(0)},
 			float64(1),
 			float64(2),
-			map[string]interface{}{"-": float64(3)},
-			map[string]interface{}{"-": float64(4)},
-			map[string]interface{}{"+": float64(5)},
+			map[string]interface{}{"rm": float64(3)},
+			map[string]interface{}{"rm": float64(4)},
+			map[string]interface{}{"add": float64(5)},
 		},
 	}, dxy.v)
 
