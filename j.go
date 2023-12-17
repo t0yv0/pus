@@ -90,13 +90,13 @@ func (x j) diff(y j) (j, bool) {
 }
 
 func (x j) removed() j {
-	return mustJ(map[string]interface{}{"-": x.v})
+	return mustJ(map[string]interface{}{"rm": x.v})
 }
 
 func (x j) added() j {
-	return mustJ(map[string]interface{}{"+": x.v})
+	return mustJ(map[string]interface{}{"add": x.v})
 }
 
 func (x j) changed(y j) j {
-	return mustJ(map[string]interface{}{"-": x.v, "+": y.v})
+	return mustJ(map[string]interface{}{"rm": x.v, "add": y.v})
 }

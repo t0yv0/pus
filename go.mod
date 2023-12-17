@@ -4,15 +4,12 @@ go 1.21.4
 
 require (
 	github.com/pulumi/pulumi/pkg/v3 v3.70.0
-	github.com/t0yv0/complang v0.0.0-20231216213619-3f0addea2d97
+	github.com/stretchr/testify v1.8.4
+	github.com/t0yv0/complang v0.0.1
+	github.com/t0yv0/godifft v0.0.1
 )
 
 replace github.com/chzyer/readline => github.com/t0yv0/readline v0.0.0-20230907050713-5bb033bdf64f
-
-require (
-	github.com/stretchr/testify v1.8.4
-	github.com/t0yv0/godifft v0.0.0-20231216213649-ecaba927cc38
-)
 
 require (
 	github.com/Microsoft/go-winio v0.5.2 // indirect
