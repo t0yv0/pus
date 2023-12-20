@@ -191,23 +191,6 @@ func detectSchemaFile() (string, error) {
 	return detectSchemaGitPath()
 }
 
-func detectSchemaGitPath() (string, error) {
-	cmd := exec.Command("git", "ls-files", "**schema.json")
-	out := &bytes.Buffer{}
-	cmd.Stdout = out
-	cmd.Stderr = &bytes.Buffer{}
-	err := cmd.Run()
-	if err != nil {
-		return "", fmt.Errorf("Error calling `git ls-files **schema.json`: %w", err)
-	}
-	s := out.String()
-	s = strings.TrimSpace(s)
-	if s == "" {
-		return "", fmt.Errorf("No schema found by calling `git ls-files **schema.json`")
-	}
-	return s, nil
-}
-
 func loadSchemaAtGitRef(ref string) (*schema.PackageSpec, error) {
 	schemaPath, err := detectSchemaGitPath()
 	if err != nil {
@@ -243,11 +226,8 @@ func autoloadSchema() (*schema.PackageSpec, error) {
 	return &packageSpec, nil
 }
 
-// Diff between baseline value retrieved as follows, and the given value.
-//
-//	git show HEAD:..schema.json
-func (s *Schema) Diff() complang.Value {
-	baseline, err := loadSchemaAtGitRef("HEAD")
+func (s *Schema) diffRef(ref string) complang.Value {
+	baseline, err := loadSchemaAtGitRef(ref)
 	if err != nil {
 		return &complang.Error{
 			ErrorMessage: fmt.Sprintf("%v", err),
@@ -257,7 +237,32 @@ func (s *Schema) Diff() complang.Value {
 	if hasDiff {
 		return complang.BindValue(diff.v)
 	}
-	return complang.BindValue("No schema changes between HEAD and current version")
+	return complang.BindValue("No schema changes between " + ref + " and current version")
+}
+
+// Diff between baseline value retrieved as follows, and the given value.
+//
+//	git show HEAD:..schema.json
+func (s *Schema) Diff() complang.Value {
+	return s.diffRef("HEAD")
+}
+
+func (s *Schema) DiffTag() map[string]complang.Value {
+	result := map[string]complang.Value{}
+	tags, err := detectGitTags()
+	if err != nil {
+		return result
+	}
+	for _, t := range tags {
+		if !strings.HasPrefix(t, "v") {
+			continue
+		}
+		t := t
+		result[t] = complang.LazyValue(func() complang.Value {
+			return s.diffRef(t)
+		})
+	}
+	return result
 }
 
 // Inlines local type references for easier viewing and diffing.
