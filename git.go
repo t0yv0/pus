@@ -4,7 +4,10 @@ import (
 	"bytes"
 	"fmt"
 	"os/exec"
+	"sort"
 	"strings"
+
+	"github.com/coreos/go-semver/semver"
 )
 
 func detectSchemaGitPath() (string, error) {
@@ -41,7 +44,16 @@ func detectGitTags() ([]string, error) {
 		if line == "" {
 			continue
 		}
+		_, err := semver.NewVersion(strings.TrimPrefix(line, "v"))
+		if err != nil {
+			continue
+		}
 		tags = append(tags, line)
 	}
+	sort.Slice(tags, func(i, j int) bool {
+		vi := semver.New(strings.TrimPrefix(tags[i], "v"))
+		vj := semver.New(strings.TrimPrefix(tags[j], "v"))
+		return !vi.LessThan(*vj)
+	})
 	return tags, nil
 }
