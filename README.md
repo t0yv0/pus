@@ -7,87 +7,91 @@ Loads and explores [Pulumi Package Schema](https://www.pulumi.com/docs/using-pul
 Execute `pus` in a context of a checked out repo such as `pulumi/pulumi-cloudflare`. The built-in
 `$schema` loads the package schema and allows auto-complete to explore it:
 
-    » $schema
-    <schema:97rs/15fn/267ty>
+    » $schema <TAB>
+    Meta       Diff       Name       Types      Config     Version    License    LogoURL    DiffTag
+    Provider   Homepage   Keywords   Language   Functions  Publisher  Resources  Repository
 
-    » $schema fn
-    <functions>
+    » $schema Functions
+    cloudflare:index/getAccessApplication:getAccessApplication: {}
+    cloudflare:index/getAccessIdentityProvider:getAccessIdentityProvider: {}
+    cloudflare:index/getAccountRoles:getAccountRoles: {}
+    cloudflare:index/getAccounts:getAccounts: {}
+    cloudflare:index/getApiTokenPermissionGroups:getApiTokenPermissionGroups: {}
+    cloudflare:index/getDevicePostureRules:getDevicePostureRules: {}
+    ...
 
-    » $schema fn cloudflare:index/get<TAB>
+    » $schema Functions cloudflare:index/get<TAB>
     cloudflare:index/getZone:getZone
+    cloudflare:index/getUser:getUser
+    cloudflare:index/getList:getList
     cloudflare:index/getLists:getLists
+    cloudflare:index/getZones:getZones
+    cloudflare:index/getTunnel:getTunnel
     cloudflare:index/getRecord:getRecord
-    cloudflare:index/getRulesets:getRulesets
-    cloudflare:index/getIpRanges:getIpRanges
-    cloudflare:index/getAccountRoles:getAccountRoles
-    cloudflare:index/getAccessIdentityProvider:getAccessIdentityProvider
-    cloudflare:index/getApiTokenPermissionGroups:getApiTokenPermissionGroups
+    ...
 
 If your workspace has schema edit relative to HEAD, `pus` can help explore the diff hierarchically:
 
-    » $schema diff resources aws:a<TAB>
-    aws:accessanalyzer/analyzer:Analyzer
-    aws:account/primaryContact:PrimaryContact
-    aws:acmpca/certificateAuthority:CertificateAuthority
-    aws:alb/listenerCertificate:ListenerCertificate
-    aws:alb/targetGroup:TargetGroup
-    aws:amp/workspace:Workspace
-    
-At the leaves of the diff tree, text nodes render as a linewise diff, for example:
+    » $schema Diff resources <TAB>
+    cloudflare:index/argo:Argo                    cloudflare:index/zone:Zone
+    cloudflare:index/listItem:ListItem            cloudflare:index/zoneHold:ZoneHold
+    cloudflare:index/greTunnel:GreTunnel          cloudflare:index/teamsRule:TeamsRule
+    ...
 
-    » $schema diff resources aws:amp/workspace:Workspace description
-      {{% /example %}}
-      {{% /examples %}}
+Diffs can be drilled down further:
 
-      ## Import
-    - 
-    - terraform import {
+    » $schema Diff resources cloudflare:index/argo:Argo
+    inputProperties:
+        tieredCaching:
+            deprecationMessage:
+                rm:
+                    text: tiered_caching has been deprecated in favour of using `cloudflare_tiered_cache` resource instead.
 
-    -  to = aws_prometheus_workspace.demo
-    + Using `pulumi import`, import AMP Workspaces using the identifier. For example:
+Diffs can be performed against a specific tag, for example:
 
-    -  id = "ws-C6DCB907-F2D7-4D96-957B-66691F865D8B" } Using `pulumi import`, import AMP Workspaces using the identifier. For exampleconsole % pulumi import aws_prometheus_workspace.demo ws-C6DCB907-F2D7-4D96-957B-66691F865D8B 
-    + ``sh
-    +  $ pulumi import aws:amp/workspace:Workspace demo ws-C6DCB907-F2D7-4D96-957B-66691F865D8B
-    + ``
-    +  
-    
+    » $schema DiffTag <TAB>
+    v5.2.0 v5.4.0 v5.1.1 v2.2.0 v4.1.0 v5.4.1 v4.5.0 v1.9.0 v2.9.0 v2.0.0 v1.6.0 v3.2.0 v5.5.0 v5.1.0 v3.4.0 v2.4.0 v5.3.0
+
 Every object can be explored further down with auto-complete:
 
-    » $schema fn cloudflare:index/getZones:getZones schema outputs properties filter
-    $ref: '#/types/cloudflare:index/getZonesFilter:getZonesFilter'
-    description: |
-        One or more values used to look up zone records. If more than one value is given all values must match in order to be included.
+    » $schema Functions cloudflare:index/getZones:getZones outputs properties filter
+    $ref:
+        text: '#/types/cloudflare:index/getZonesFilter:getZonesFilter'
+    description:
+        text: |
+            One or more values used to look up zone records. If more than one value is given all values must match in order to be in...
     properties:
         accountId:
-            description: |
-                The account identifier to target for the resource.
-            type: string
+            description:
+                text: |
+                    The account identifier to target for the resource.
+            type:
+                text: string
         lookupType:
-            description: |
-                The type of search to perform for the `name` value when querying the zone API. Available values: `contains`, `exact`. Defaults to `exact`.
-            type: string
+            description:
+                text: |
+                    The type of search to perform for the `name` value when querying the zone API. Available values: `contains`, `ex...
+            type:
+                text: string
         match:
-            description: |
-                A RE2 compatible regular expression to filter the   results. This is performed client side whereas the `name` and `lookup_type`     are performed on the Cloudflare server side.
-            type: string
+            description:
+                text: |
+                    A RE2 compatible regular expression to filter the       results. This is performed client side whereas the `name` and ...
+            type:
+                text: string
         name:
-            description: |
-                A string value to search for.
-            type: string
+            description:
+                text: |
+                    A string value to search for.
+            type:
+                text: string
         paused:
-            description: |
-                Paused status of the zone to lookup. Defaults to `false`.
-            type: boolean
-        status:
-            description: |
-                Status of the zone to lookup.
-            type: string
-    type: object
+            description:
+    ...
 
 You can save an object of interest such as the located function to a variable:
 
-    » $getZone = $schema fn cloudflare:index/getZone:getZone
+    » $getZone = $schema Functions cloudflare:index/getZone:getZone
 
 ## Features
 
