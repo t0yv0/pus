@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"reflect"
+	"strings"
+	"fmt"
 
 	"github.com/t0yv0/godifft"
 )
@@ -78,6 +81,11 @@ func (jd *jDiffer) Diff(x, y any) (any, bool) {
 	if reflect.DeepEqual(x, y) {
 		return nil, false
 	}
+	if xS, xIsS := x.(string); xIsS {
+		if yS, yIsS := y.(string); yIsS && xS != yS {
+			return lineDiff(xS, yS), true
+		}
+	}
 	return mustJ(x).changed(mustJ(y)).v, true
 }
 
@@ -99,4 +107,30 @@ func (x j) added() j {
 
 func (x j) changed(y j) j {
 	return mustJ(map[string]interface{}{"rm": x.v, "add": y.v})
+}
+
+func lineDiff(x, y string) string {
+	xs := strings.Split(x, "\n")
+	ys := strings.Split(y, "\n")
+	edits := godifft.DiffT(xs, ys, godifft.DiffTOptions[string]{
+		Equals: func(s1, s2 string) bool { return s1 == s2 },
+	})
+	var result bytes.Buffer
+	sep := false
+	for _, e := range edits {
+		switch e.Change {
+		case godifft.Insert:
+			fmt.Fprintf(&result, "+ %s\n", e.Element)
+			sep = false
+		case godifft.Remove:
+			fmt.Fprintf(&result, "- %s\n", e.Element)
+			sep = false
+		case godifft.Keep:
+			if !sep {
+				fmt.Fprintf(&result, "\n")
+				sep = true
+			}
+		}
+	}
+	return result.String()
 }
