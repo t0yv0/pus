@@ -109,6 +109,32 @@ This makes it easier to view and compare nested object schemata.
 
 Inlining non-local references and proper support for cyclic types is not implemented yet.
 
+
+### CLI Interface for Completions
+
+To make it easy to build lightweight editor integration, a CLI interface exposes all completion candidates. The idea is
+that the editor can then do further interactive filtering of the candidates.
+
+
+    > ./pus --complete "\$sch"
+    $schema
+
+    > ./pus --complete "\$schema x"
+    AllowedPackageNames
+    Attribution
+    Config
+    Description
+    ...
+
+    > ./pus --complete "\$schema Types x"
+    awsx:awsx:Bucket
+    awsx:awsx:DefaultBucket
+    awsx:awsx:DefaultLogGroup
+    awsx:awsx:DefaultRoleWithPolicy
+    awsx:awsx:DefaultSecurityGroup
+    ...
+
+
 ## Language
 
 See [complang](https://github.com/t0yv0/complang) for more info on the underlying language.
