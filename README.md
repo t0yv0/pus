@@ -119,20 +119,27 @@ that the editor can then do further interactive filtering of the candidates.
     > ./pus --complete "\$sch"
     $schema
 
-    > ./pus --complete "\$schema x"
-    AllowedPackageNames
-    Attribution
-    Config
-    Description
+    > ./pus --complete "\$schema "
+    $schema AllowedPackageNames
+    $schema Attribution
+    $schema Config
+    $schema Description
     ...
 
-    > ./pus --complete "\$schema Types x"
-    awsx:awsx:Bucket
-    awsx:awsx:DefaultBucket
-    awsx:awsx:DefaultLogGroup
-    awsx:awsx:DefaultRoleWithPolicy
-    awsx:awsx:DefaultSecurityGroup
+    > ./pus --complete "\$schema R"
+    $schema Repository
+    $schema Resources
+
+    > ./pus --complete "\$schema Resources "
+    $schema Resources awsx:cloudtrail:Trail
+    $schema Resources awsx:ec2:DefaultVpc
+    $schema Resources awsx:ec2:Vpc
+    $schema Resources awsx:ecr:Image
     ...
+
+    > ./pus --complete "\$schema Resources awsx:ecs:E"
+    $schema Resources awsx:ecs:EC2Service
+    $schema Resources awsx:ecs:EC2TaskDefinition
 
 
 ## Language

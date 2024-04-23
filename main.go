@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"sort"
+	"strings"
 
 	"github.com/t0yv0/complang"
 	"github.com/t0yv0/complang/expr"
@@ -39,13 +40,18 @@ func complete(completeSnippet string) error {
 		menv.Bind(k, v)
 	}
 	matches := []string{}
+	qt := query.QueryText()
 	expr.EvalQuery(ctx, menv, query, func(_, match string) bool {
+		if !strings.HasPrefix(match, qt) {
+			return true
+		}
 		matches = append(matches, match)
 		return true
 	})
 	sort.Strings(matches)
+	pfx := completeSnippet[0:query.Offset()]
 	for _, m := range matches {
-		fmt.Println(m)
+		fmt.Printf("%s%s\n", pfx, m)
 	}
 	return nil
 }
