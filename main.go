@@ -16,16 +16,38 @@ import (
 
 func main() {
 	completeSnippet := flag.String("complete", "", "optionally pass some code to complete on")
+	executeSnippet := flag.String("execute", "", "optionally pass some code to execute")
 	flag.Parse()
 
-	if completeSnippet != nil && *completeSnippet != "" {
+	switch {
+	case completeSnippet != nil && *completeSnippet != "":
 		err := complete(*completeSnippet)
 		if err != nil {
 			log.Fatal(err)
 		}
-	} else {
+	case executeSnippet != nil && *executeSnippet != "":
+		err := execCode(*executeSnippet)
+		if err != nil {
+			log.Fatal(err)
+		}
+	default:
 		startREPL()
 	}
+}
+
+func execCode(executeSnippet string) error {
+	ctx := context.Background()
+	stmt, err := parser.ParseStmt(executeSnippet)
+	if err != nil {
+		return err
+	}
+	env := initialEnv()
+	menv := complang.NewMutableEnv()
+	for k, v := range env {
+		menv.Bind(k, v)
+	}
+	expr.EvalStmt(ctx, menv, stmt)
+	return nil
 }
 
 func complete(completeSnippet string) error {
