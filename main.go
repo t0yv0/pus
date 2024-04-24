@@ -4,7 +4,9 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"log"
+	"os"
 	"sort"
 	"strings"
 
@@ -16,7 +18,7 @@ import (
 
 func main() {
 	completeSnippet := flag.String("complete", "", "optionally pass some code to complete on")
-	executeSnippet := flag.String("execute", "", "optionally pass some code to execute")
+	executeFlag := flag.Bool("execute", false, "optionally pass some code to execute on stdin")
 	flag.Parse()
 
 	switch {
@@ -25,8 +27,8 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-	case executeSnippet != nil && *executeSnippet != "":
-		err := execCode(*executeSnippet)
+	case executeFlag != nil && *executeFlag:
+		err := execCode()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -35,18 +37,30 @@ func main() {
 	}
 }
 
-func execCode(executeSnippet string) error {
-	ctx := context.Background()
-	stmt, err := parser.ParseStmt(executeSnippet)
+func execCode() error {
+	bytes, err := io.ReadAll(os.Stdin)
 	if err != nil {
 		return err
 	}
+	executeSnippet := string(bytes)
+	ctx := context.Background()
+
 	env := initialEnv()
 	menv := complang.NewMutableEnv()
 	for k, v := range env {
 		menv.Bind(k, v)
 	}
-	expr.EvalStmt(ctx, menv, stmt)
+
+	for _, s := range strings.Split(executeSnippet, "\n") {
+		stmt, err := parser.ParseStmt(s)
+		if err != nil {
+			return err
+		}
+		if stmt == nil {
+			continue
+		}
+		expr.EvalStmt(ctx, menv, stmt)
+	}
 	return nil
 }
 
