@@ -17,6 +17,16 @@
   "Default directory to execute pus in.")
 
 
+(defun pus-init ()
+  "Overload `org-cycle' to do code completion in code blocks."
+  (advice-add
+   'org-cycle
+   :around (lambda (orig-fun &rest args)
+             (if (pus--in-source-block-p)
+                 (pus-complete-at-point)
+               (apply orig-fun args)))))
+
+
 (defun org-babel-execute:pus (body params)
   "Execute BODY code with pus.
 Ignore PARAMS."
