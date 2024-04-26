@@ -12,6 +12,14 @@
       pkgs = import nixpkgs { system = sys; };
       epkgs = pkgs.emacsPackagesFor (emacs-flavor pkgs);
 
+      pus = pkgs.buildGoModule {
+          name = "pus-${version}";
+          version = "${version}";
+          src = ./.;
+          doCheck = false;
+          vendorHash = "sha256-9JkGaiSp+WAzVH6zyzSYi/HEeWMTAtEgLItAx1rre+Y=";
+      };
+
       pus-el = epkgs.elpaBuild {
         pname = "pus";
         ename = "pus";
@@ -22,6 +30,8 @@
       };
 
     in {
+      default = pus;
+      pus = pus;
       pus-el = pus-el;
     };
 
