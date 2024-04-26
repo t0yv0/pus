@@ -1,4 +1,6 @@
-;;; pus.el -- interfacing with pus from within emacs  -*- lexical-binding:t -*-
+;;; pus.el --- pus codeblock completion  -*- lexical-binding:t -*-
+
+;;; Version: 1
 
 ;;; Commentary:
 
@@ -9,12 +11,20 @@
 ;;; Code:
 
 
+(require 'org)
+(require 'org-element)
+
+
 (defcustom pus-path "pus"
-  "Path to the pus executable.")
+  "Path to the pus executable."
+  :group 'pus
+  :type 'string)
 
 
 (defcustom pus-default-directory "."
-  "Default directory to execute pus in.")
+  "Default directory to execute pus in."
+  :group 'pus
+  :type 'string)
 
 
 (defun pus-init ()
@@ -27,7 +37,7 @@
                (apply orig-fun args)))))
 
 
-(defun org-babel-execute:pus (body params)
+(defun org-babel-execute:pus (body _)
   "Execute BODY code with pus.
 Ignore PARAMS."
   (let ((buf-inp (generate-new-buffer "*pus-input*" t))
@@ -81,7 +91,7 @@ Ignore PARAMS."
                 :connection-type 'pipe
                 :command (list pus-path "--complete" "-")
                 :buffer buf
-                :sentinel (lambda (x y)
+                :sentinel (lambda (_ _)
                             (let ((lines (json-parse-string
                                           (with-current-buffer buf
                                             (buffer-substring (point-min) (point-max))))))
@@ -118,7 +128,7 @@ Return a plist with :start and :end marking point bounds and
         (block-code-start nil))
     (save-excursion
       (goto-char block-start)
-      (next-line)
+      (forward-line)
       (setq block-code-start (point)))
     (list ':start block-code-start
           ':end (point)
@@ -147,4 +157,5 @@ Return a plist with :start and :end marking point bounds and
     result))
 
 
+(provide 'pus)
 ;;; pus.el ends here
