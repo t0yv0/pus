@@ -20,17 +20,26 @@
           vendorHash = "sha256-9JkGaiSp+WAzVH6zyzSYi/HEeWMTAtEgLItAx1rre+Y=";
       };
 
+      bootstrap = pkgs.stdenv.mkDerivation {
+        name = "pus-bootstrap-${version}";
+        version = "${version}";
+        builder = "${pkgs.bash}/bin/bash";
+        coreutils = pkgs.coreutils;
+        args = [ ./bootstrap.sh ./pus.el "${pus}/bin/pus" ];
+      };
+
       pus-el = epkgs.elpaBuild {
         pname = "pus";
         ename = "pus";
         version = version;
-        src = [ ./pus.el ];
+        src = [ "${bootstrap}/pus.el" ];
         packageRequires = [];
         meta = {};
       };
 
     in {
       default = pus;
+      bootstrap = bootstrap;
       pus = pus;
       pus-el = pus-el;
     };
